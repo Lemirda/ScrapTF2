@@ -1,4 +1,3 @@
 nodriver
 PyQt6
-PyQt6-Charts
 psutil

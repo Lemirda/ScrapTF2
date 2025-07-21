@@ -26,7 +26,8 @@ def build_exe():
     desktop_app_path = os.path.join(os.path.dirname(
         os.path.abspath(__file__)), "desktop_app.py")
 
-    resources_path = os.path.join(os.path.dirname(PyQt6.__file__), 'Qt6', 'resources')
+    resources_path = os.path.join(
+        os.path.dirname(PyQt6.__file__), 'Qt6', 'resources')
     resources_dest = "PyQt6/Qt6/resources"
 
     pyinstaller_args = [

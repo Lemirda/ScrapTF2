@@ -55,36 +55,22 @@ class RaffleDatabase:
         conn = self.connect()
         cursor = conn.cursor()
 
-        try:
-            cursor.execute(
-                'INSERT INTO raffles (url, processed) VALUES (?, 0)',
-                (url,)
-            )
-            conn.commit()
-            rows_affected = cursor.rowcount
-            return rows_affected > 0
-        except sqlite3.IntegrityError as e:
-            print(f"Раздача уже существует в базе данных: {e}")
-            return False
-        except sqlite3.Error as e:
-            print(f"Ошибка SQLite при добавлении раздачи: {e}")
-            return False
-        except (TypeError, ValueError) as e:
-            print(f"Ошибка в данных при добавлении раздачи: {e}")
-            return False
+        cursor.execute(
+            'INSERT INTO raffles (url, processed) VALUES (?, 0)',
+            (url,)
+        )
+        conn.commit()
+        rows_affected = cursor.rowcount
+        return rows_affected > 0
 
     def delete_raffle(self, url):
         """Удаляет раздачу из базы данных."""
         conn = self.connect()
         cursor = conn.cursor()
 
-        try:
-            cursor.execute('DELETE FROM raffles WHERE url = ?', (url,))
-            conn.commit()
-            return cursor.rowcount > 0
-        except sqlite3.Error as e:
-            print(f"Ошибка при удалении раздачи из базы данных: {e}")
-            return False
+        cursor.execute('DELETE FROM raffles WHERE url = ?', (url,))
+        conn.commit()
+        return cursor.rowcount > 0
 
     def is_raffle_exists(self, url):
         """Проверка, существует ли раздача в базе данных."""
@@ -99,16 +85,12 @@ class RaffleDatabase:
         conn = self.connect()
         cursor = conn.cursor()
 
-        try:
-            cursor.execute(
-                'UPDATE raffles SET processed = 1 WHERE url = ?',
-                (url,)
-            )
-            conn.commit()
-            return cursor.rowcount > 0
-        except sqlite3.Error as e:
-            print(f"Ошибка при обновлении статуса раздачи: {e}")
-            return False
+        cursor.execute(
+            'UPDATE raffles SET processed = 1 WHERE url = ?',
+            (url,)
+        )
+        conn.commit()
+        return cursor.rowcount > 0
 
     def get_unprocessed_raffles(self, limit=None):
         """Получение необработанных раздач."""

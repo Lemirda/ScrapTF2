@@ -26,13 +26,9 @@ async def check_and_login():
         return True, browser_profile_dir
 
     # Создаем директорию для профиля
-    try:
-        os.makedirs(browser_profile_dir)
-        print(
-            f"\n=== Создана директория для профиля браузера: {browser_profile_dir} ===")
-    except Exception as e:
-        print(f"Ошибка при создании директории профиля: {str(e)}")
-        return False, browser_profile_dir
+    os.makedirs(browser_profile_dir)
+    print(
+        f"\n=== Создана директория для профиля браузера: {browser_profile_dir} ===")
 
     # Запускаем процесс авторизации
     login_successful = await perform_login(browser_profile_dir)
@@ -47,33 +43,27 @@ async def perform_login(profile_dir):
     print("Сейчас откроется браузер. Вам необходимо войти в аккаунт Steam на сайте scrap.tf")
     print("У вас есть 5 минут для авторизации.")
 
-    try:
-        # Запускаем браузер с указанием нашего профиля
-        browser = await uc.start(
-            headless=False,
-            user_data_dir=profile_dir
-        )
+    # Запускаем браузер с указанием нашего профиля
+    browser = await uc.start(
+        headless=False,
+        user_data_dir=profile_dir
+    )
 
-        # Открываем сайт для авторизации
-        tab = await browser.get("https://scrap.tf/")
+    await browser.get("https://scrap.tf/")
 
-        # Даем пользователю 5 минут на авторизацию
-        print("\nОжидание авторизации: 5 минут")
-        for i in range(5, 0, -1):
-            print(f"Осталось времени: {i} минут...")
-            await asyncio.sleep(60)
+    # Даем пользователю 5 минут на авторизацию
+    print("\nОжидание авторизации: 5 минут")
+    for i in range(5, 0, -1):
+        print(f"Осталось времени: {i} минут...")
+        await asyncio.sleep(60)
 
-        print("\n=== Время на авторизацию истекло ===")
-        print("Надеемся, вы успели войти в аккаунт.")
-        print("Браузер будет закрыт. Профиль сохранен.")
+    print("\n=== Время на авторизацию истекло ===")
+    print("Надеемся, вы успели войти в аккаунт.")
+    print("Браузер будет закрыт. Профиль сохранен.")
 
-        # Закрываем браузер
-        browser.stop()
-        return True
-
-    except Exception as e:
-        print(f"Ошибка при авторизации: {str(e)}")
-        return False
+    # Закрываем браузер
+    browser.stop()
+    return True
 
 # Код для самостоятельного запуска файла
 if __name__ == "__main__":
