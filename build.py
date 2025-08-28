@@ -1,9 +1,8 @@
 """Сборка кода в exe файл"""
 import os
 import shutil
-import PyQt6
-
-from PyInstaller.__main__ import run as pyinstaller_run
+import subprocess
+import sys
 
 
 def cleanup():
@@ -13,6 +12,25 @@ def cleanup():
 
     if os.path.exists("ScrapTF_Raffles.spec"):
         os.remove("ScrapTF_Raffles.spec")
+
+
+def run_cmd(args):
+    print("> " + " ".join(args))
+    subprocess.check_call(args)
+
+
+def ensure_deps():
+    """Ensure pip and install dependencies needed for the build."""
+    python = sys.executable
+    project_dir = os.path.dirname(os.path.abspath(__file__))
+    req_path = os.path.join(project_dir, "requirements.txt")
+    # Upgrade pip to avoid resolver edge cases on CI
+    run_cmd([python, "-m", "pip", "install", "--upgrade", "pip"])
+    if os.path.exists(req_path):
+        run_cmd([python, "-m", "pip", "install", "-r", req_path])
+    else:
+        # Minimal fallback set to build on CI even without requirements.txt
+        run_cmd([python, "-m", "pip", "install", "pyinstaller", "PyQt6"])
 
 
 def build_exe():
@@ -26,24 +44,23 @@ def build_exe():
     desktop_app_path = os.path.join(os.path.dirname(
         os.path.abspath(__file__)), "desktop_app.py")
 
-    resources_path = os.path.join(
-        os.path.dirname(PyQt6.__file__), 'Qt6', 'resources')
-    resources_dest = "PyQt6/Qt6/resources"
-
     pyinstaller_args = [
+        sys.executable, "-m", "PyInstaller",
+        "--noconfirm",
+        "--clean",
         "--onefile",
         "--windowed",
         "--name", "ScrapTF_Raffles",
         "--icon", "icon.ico",
         "--hidden-import", "PyQt6.QtChart",
-        "--add-data",
-        f"{resources_path}{os.pathsep}{resources_dest}",
+        "--collect-all", "PyQt6",
         desktop_app_path
     ]
 
-    pyinstaller_run(pyinstaller_args)
+    run_cmd(pyinstaller_args)
 
 
 if __name__ == "__main__":
+    ensure_deps()
     build_exe()
     cleanup()
