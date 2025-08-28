@@ -1,20 +1,21 @@
 name: Build EXE and Draft Release
 
 on:
-  push:
-    branches:
-      - '**'  # каждый коммит на любую ветку
+  workflow_dispatch:
 
 permissions:
   contents: write
 
 jobs:
   build-and-draft-release:
+    if: github.ref == 'refs/heads/main'
     runs-on: windows-latest
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          ref: main
 
       - name: Setup Python
         uses: actions/setup-python@v5
@@ -34,7 +35,9 @@ jobs:
       - name: Commit subject (single line)
         id: commit
         shell: bash
-        run: echo "subject=$(git log -1 --pretty=%s)" >> $GITHUB_OUTPUT
+        run: |
+          echo "subject=$(git log -1 --pretty=%s)" >> $GITHUB_OUTPUT
+          echo "sha=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
 
       - name: Find EXE
         id: find_exe
@@ -49,7 +52,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           draft: true
-          tag_name: build-${{ github.sha }}
+          tag_name: build-${{ steps.commit.outputs.sha }}
           name: ${{ steps.commit.outputs.subject }}
           files: ${{ steps.find_exe.outputs.path }}
         env:
