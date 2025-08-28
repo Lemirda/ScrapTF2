@@ -1,9 +1,0 @@
-__pycache__/
-*.py[cod]
-*$py.class
-raffles.db
-dist/
-build/
-*.spec
-browser_profile/
-.venv
