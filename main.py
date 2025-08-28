@@ -133,14 +133,13 @@ async def process_unprocessed_raffles(browser, db):
         tab = await browser.get(url)
         await asyncio.sleep(random.uniform(5.0, 10.0))
 
-        # Проверяем, закончилась ли раздача
         try:
             await tab.wait_for('.raffle-row-full-width', timeout=5)
 
             print("Раздача уже закончилась. Удаляем из базы данных.")
             db.delete_raffle(url)
             continue
-        except TimeoutError:
+        except Exception:
             pass
 
         try:
@@ -149,7 +148,7 @@ async def process_unprocessed_raffles(browser, db):
             print("Найдена кнопка 'Enter Raffle'. Нажимаем...")
             await enter_button.click()
             await asyncio.sleep(random.uniform(5.0, 10.0))
-        except TimeoutError:
+        except Exception:
             print("Не удалось найти кнопку Enter Raffle")
 
         try:
@@ -158,7 +157,7 @@ async def process_unprocessed_raffles(browser, db):
             print("Успешно вступили в раздачу!")
             db.mark_as_processed(url)
             processed_count += 1
-        except TimeoutError:
+        except Exception:
             print("Не удалось найти кнопку LeaveRaffle")
             failed_count += 1
 
