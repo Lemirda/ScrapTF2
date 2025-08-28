@@ -1,3 +1,4 @@
 nodriver
 PyQt6
 psutil
+pyinstaller

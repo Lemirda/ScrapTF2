@@ -26,9 +26,6 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           if (Test-Path 'requirements.txt') { pip install -r requirements.txt }
-          # Если build.py сам ставит зависимости/pyinstaller — оставьте как есть,
-          # иначе раскомментируйте следующую строку:
-          # pip install pyinstaller
 
       - name: Build
         shell: pwsh
