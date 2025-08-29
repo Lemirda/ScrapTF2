@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="ru" data-theme="dark">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Демонстрация ScrapTF-Raffles — Автовступление в раздачи ScrapTF</title>
+    <meta name="description" content="Стильная демо‑страница проекта ScrapTF-Raffles: скрипт автоматически вступает в раздачи на ScrapTF через Chrome (локальный профиль). Современный визуал, плавные анимации, Light/Dark темы." />
+
+    
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="./assets/css/styles.css" />
+    <!-- Prism.js for code highlighting -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/plugins/line-numbers/prism-line-numbers.css">
+  </head>
+  <body>
+    
+
+    <main>
+      <!-- HERO -->
+      <section class="hero">
+        <div class="hero-bg" aria-hidden="true"></div>
+        <div class="container hero-inner">
+          <h1 class="hero-title reveal" style="--reveal-delay:0ms">
+            <span class="grad grad-anim">ScrapTF‑Raffles</span>
+          </h1>
+          
+          <div class="os-grid reveal" style="--reveal-delay:120ms">
+            <div class="os-card">
+              <div class="os-icon" aria-label="Windows">
+                <img class="os-logo" src="https://img.icons8.com/?size=28&id=108792&format=png&color=0ea5e9" width="28" height="28" alt="Windows 10" />
+              </div>
+              <div class="os-name">Windows</div>
+              <div class="status ok">Поддерживается</div>
+              <a class="btn primary" data-config="releasesUrl" href="#" target="_blank" rel="noopener">Скачать</a>
+              <a class="btn ghost" data-config="repoUrl" href="#" target="_blank" rel="noopener">Исходный код</a>
+            </div>
+            <div class="os-card">
+              <div class="os-icon" aria-label="Linux">
+                <img class="os-logo" src="https://cdn.simpleicons.org/linux/e5e7eb" width="28" height="28" alt="Linux" />
+              </div>
+              <div class="os-name">Linux</div>
+              <div class="status unknown">Не проверено</div>
+              <a class="btn outline" data-config="releasesUrl" href="#" target="_blank" rel="noopener">Скачать</a>
+              <a class="btn ghost" data-config="repoUrl" href="#" target="_blank" rel="noopener">Исходный код</a>
+            </div>
+            <div class="os-card">
+              <div class="os-icon" aria-label="macOS">
+                <img class="os-logo" src="https://cdn.simpleicons.org/apple/e5e7eb" width="28" height="28" alt="macOS" />
+              </div>
+              <div class="os-name">macOS</div>
+              <div class="status unknown">Не проверено</div>
+              <a class="btn outline" data-config="releasesUrl" href="#" target="_blank" rel="noopener">Скачать</a>
+              <a class="btn ghost" data-config="repoUrl" href="#" target="_blank" rel="noopener">Исходный код</a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- FEATURES -->
+      <section id="features" class="section">
+        <div class="container">
+          <h2 class="section-title reveal" style="--reveal-delay:0ms">Возможности</h2>
+          <p class="section-sub reveal" style="--reveal-delay:80ms">Ключевые преимущества ScrapTF‑Raffles</p>
+          <div class="grid cards-3">
+            <article class="card reveal" style="--reveal-delay:0ms">
+              <div class="card-icon">🔑</div>
+              <h3>Локальный профиль Chrome</h3>
+              <p>Использует ваш профиль браузера для безопасной авторизации без передачи токенов.</p>
+            </article>
+            <article class="card reveal" style="--reveal-delay:80ms">
+              <div class="card-icon">🧭</div>
+              <h3>Сканирование раздач</h3>
+              <p>Обходит /raffles и /raffles/ending, собирая ссылки на активные раздачи.</p>
+            </article>
+            <article class="card reveal" style="--reveal-delay:160ms">
+              <div class="card-icon">🤖</div>
+              <h3>Автовступление</h3>
+              <p>Находит кнопку Enter Raffle и нажимает её, отмечая раздачу обработанной.</p>
+            </article>
+            <article class="card reveal" style="--reveal-delay:240ms">
+              <div class="card-icon">⏱️</div>
+              <h3>Рандомные задержки</h3>
+              <p>Добавляет естественные интервалы между действиями для более «человеческого» поведения.</p>
+            </article>
+            <article class="card reveal" style="--reveal-delay:320ms">
+              <div class="card-icon">📊</div>
+              <h3>Учёт в базе</h3>
+              <p>Сохраняет новые/обработанные раздачи и показывает статистику выполнения.</p>
+            </article>
+            <article class="card reveal" style="--reveal-delay:400ms">
+              <div class="card-icon">📦</div>
+              <h3>Установка через релизы</h3>
+              <p>Скачивайте готовые сборки на <em>GitHub Releases</em> — без настройки окружения.</p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <!-- DEMO -->
+      <section id="demo" class="section">
+        <div class="container">
+          <h2 class="section-title reveal" style="--reveal-delay:0ms">Как работает ScrapTF‑Raffles</h2>
+          <p class="section-sub reveal" style="--reveal-delay:80ms">Коротко о логике: авторизация, сканирование страниц раздач и автовступление</p>
+
+          <div class="demo-wrap">
+            <div class="code code-narrow reveal" style="--reveal-delay:0ms">
+              <div class="code-head">
+                <div class="dots" aria-hidden="true">
+                  <span class="dot red"></span>
+                  <span class="dot yellow"></span>
+                  <span class="dot green"></span>
+                </div>
+                <span class="title">main.py</span>
+                <span class="spacer"></span>
+                <span class="badge">Python</span>
+              </div>
+              <pre class="line-numbers"><code class="language-python">async def main():
+    # 1) Авторизация через локальный профиль Chrome
+    logged_in, profile_path = await login.check_and_login()
+    if not logged_in:
+        print("Ошибка авторизации")
+        return
+
+    # 2) Старт браузера и переход на ScrapTF
+    browser = await uc.start(user_data_dir=profile_path)
+    tab = await browser.get("https://scrap.tf/")
+
+    # 3) Сканирование страниц раздач
+    raffles = await scan.collect(["/raffles"])
+
+    # 4) Автовступление и учёт в базе
+    for url in raffles:
+        if not db.was_processed(url):
+            await join.enter(url)
+            db.mark_processed(url)
+
+if __name__ == "__main__":
+    asyncio.run(main())</code></pre>
+            </div>
+            <div class="panel reveal" style="--reveal-delay:120ms">
+              <h3>Описание</h3>
+              <p class="lead">ScrapTF‑Raffles автоматизирует вход в раздачи на ScrapTF через Chrome, используя ваш локальный профиль для безопасной авторизации. Скрипт периодически сканирует страницы раздач, вступает одним кликом и ведёт учёт обработанных ссылок.</p>
+              <ul class="checklist">
+                <li><strong>Авторизация:</strong> запуск Chrome с пользовательским профилем (без передачи токенов).</li>
+                <li><strong>Сканер:</strong> обход <code>/raffles</code>, сбор активных ссылок.</li>
+                <li><strong>Автовступление:</strong> поиск и нажатие кнопки <em>Enter Raffle</em>.</li>
+                <li><strong>Тайминги:</strong> небольшие случайные задержки, чтобы поведение выглядело естественно.</li>
+                <li><strong>Учёт:</strong> база (новые/обработанные) для исключения повторов.</li>
+                <li><strong>Цикл:</strong> периодический повтор сканирования и вступления.</li>
+                <li><strong>Технологии:</strong> Python, асинхронность (<code>asyncio</code>), управление Chrome через CDP (локальный профиль).</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- INSTALL -->
+      <section id="install" class="section">
+        <div class="container">
+          <h2 class="section-title reveal" style="--reveal-delay:0ms">Установка и запуск</h2>
+          <ol class="steps">
+            <li class="reveal" style="--reveal-delay:0ms">Откройте <a data-config="releasesUrl" href="#" target="_blank" rel="noopener">GitHub Releases</a> и скачайте <strong>.exe</strong> последнего релиза.</li>
+            <li class="reveal" style="--reveal-delay:80ms">Если Google Chrome не установлен — скачайте и установите его.</li>
+            <li class="reveal" style="--reveal-delay:160ms">Запустите скачанный EXE (<code>ScrapTF‑Raffles</code>). Откроется Chrome с вашим локальным профилем.</li>
+            <li class="reveal" style="--reveal-delay:240ms">Авторизуйтесь в аккаунте ScrapTF (и Steam при необходимости) на котором будет фарм — дальше скрипт всё сделает сам.</li>
+          </ol>
+        </div>
+      </section>
+    </main>
+
+    <!-- Prism scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-python.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/plugins/line-numbers/prism-line-numbers.min.js"></script>
+    <script src="./assets/js/main.js"></script>
+  </body>
+</html>
