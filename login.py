@@ -46,8 +46,7 @@ async def perform_login(profile_dir):
     # Запускаем браузер с указанием нашего профиля
     browser = await uc.start(
         headless=False,
-        user_data_dir=profile_dir,
-        no_sandbox=True
+        user_data_dir=profile_dir
     )
 
     await browser.get("https://scrap.tf/")
