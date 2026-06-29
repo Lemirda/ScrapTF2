@@ -3,10 +3,10 @@ import os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from PyQt6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
-    QLabel, QFrame, QSizePolicy, QPushButton
+    QLabel, QFrame, QSizePolicy, QPushButton, QTextEdit
 )
 from PyQt6.QtCore import Qt
-from PyQt6.QtGui import QIcon, QPalette
+from PyQt6.QtGui import QIcon, QPalette, QTextCursor, QTextOption
 from ui.styles import COLORS
 from ui.workers import ConsoleOutput, MainWorker, RaffleStatsWorker
 from config import get_application_path
@@ -151,24 +151,31 @@ class ModernConsole(QFrame):
                 background-color: {COLORS['card_bg'].darker(120).name()};
                 border-radius: 10px;
             }}
+            QTextEdit {{
+                background-color: transparent;
+                color: {COLORS['text'].name()};
+                font-family: 'Consolas', 'Courier New', monospace;
+                font-size: 12px;
+                font-weight: 600;
+                border: none;
+            }}
         """)
 
     def create_layout(self):
         layout = QVBoxLayout(self)
         layout.setContentsMargins(10, 10, 10, 10)
 
-        self.text_label = QLabel("")
-        self.text_label.setWordWrap(True)
-        self.text_label.setAlignment(Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignLeft)
-        self.text_label.setStyleSheet(f"color: {COLORS['text'].name()}; font-family: Consolas; font-size: 10px; background: transparent;")
-        layout.addWidget(self.text_label)
+        self.text_edit = QTextEdit()
+        self.text_edit.setReadOnly(True)
+        self.text_edit.setWordWrapMode(QTextOption.WrapMode.WordWrap)
+        layout.addWidget(self.text_edit)
 
     def append(self, text):
-        current = self.text_label.text()
-        if current:
-            self.text_label.setText(current + "\n" + text)
-        else:
-            self.text_label.setText(text)
+        cursor = self.text_edit.textCursor()
+        cursor.movePosition(QTextCursor.MoveOperation.End)
+        cursor.insertHtml(text + "<br>")
+        self.text_edit.setTextCursor(cursor)
+        self.text_edit.ensureCursorVisible()
 
 
 class NavButton(QPushButton):
@@ -279,8 +286,6 @@ class ScrapTFApp(QMainWindow):
 
         self.start_main_script()
 
-        print("[Система] Приложение запущено")
-
     def setup_dark_theme(self):
         app = QApplication.instance()
         palette = QPalette()
@@ -374,7 +379,8 @@ class ScrapTFApp(QMainWindow):
         elif "[система]" in text.lower():
             color = COLORS['accent'].name()
 
-        self.console.append(f'<span style="color:{color};">{text}</span>')
+        escaped_text = text.replace("<", "&lt;").replace(">", "&gt;")
+        self.console.append(f'<span style="color:{color};">{escaped_text}</span>')
 
     def update_raffle_stats(self, stats):
         self.total_counter.setText(str(stats['total']))
@@ -388,10 +394,7 @@ class ScrapTFApp(QMainWindow):
             self.main_worker.start()
 
     def update_script_status(self, status):
-        if status == "running":
-            print("[Система] Основной скрипт запущен")
-        else:
-            print("[Система] Основной скрипт остановлен")
+        pass
 
     def closeEvent(self, event):
         if self.main_worker and self.main_worker.isRunning():

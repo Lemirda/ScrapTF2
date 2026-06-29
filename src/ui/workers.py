@@ -5,7 +5,7 @@ import time
 import asyncio
 from PyQt6.QtCore import QThread, pyqtSignal, QObject
 from db.manager import RaffleDatabase
-import main
+from browser.scanner import run_scanner
 
 
 class ConsoleOutput(QObject):
@@ -28,7 +28,7 @@ class MainWorker(QThread):
 
     def run(self):
         self.status_changed.emit("running")
-        asyncio.run(main.main())
+        asyncio.run(run_scanner())
         self.status_changed.emit("stopped")
 
     def stop(self):

@@ -10,12 +10,9 @@ async def check_and_login():
     browser_profile_dir = os.path.join(get_application_path(), "browser_profile")
     
     if os.path.exists(browser_profile_dir):
-        print("\n=== Папка профиля браузера уже существует ===")
-        print(f"Путь к профилю: {browser_profile_dir}")
         return True, browser_profile_dir
 
     os.makedirs(browser_profile_dir)
-    print(f"\n=== Создана директория для профиля браузера: {browser_profile_dir} ===")
 
     login_successful = await perform_login(browser_profile_dir)
     return login_successful, browser_profile_dir
@@ -28,7 +25,8 @@ async def perform_login(profile_dir):
 
     browser = await uc.start(
         headless=False,
-        user_data_dir=profile_dir
+        user_data_dir=profile_dir,
+        no_sandbox=True
     )
 
     await browser.get("https://scrap.tf/")
