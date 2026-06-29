@@ -55,7 +55,7 @@ async def main():
     browser = await uc.start(
         headless=False,
         user_data_dir=profile_path,
-        sandbox=False
+        no_sandbox=True
     )
 
     print("\n=== Запускаем браузер с локальным профилем ===")
