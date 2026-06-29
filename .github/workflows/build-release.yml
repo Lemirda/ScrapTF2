@@ -30,7 +30,7 @@ jobs:
 
       - name: Build
         shell: pwsh
-        run: python build.py
+        run: python scripts/build.py
 
       - name: Commit subject (single line)
         id: commit

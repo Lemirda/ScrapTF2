@@ -1,26 +1,20 @@
-"""Модуль для управления базой данных раздач и хранения связанной информации"""
-import sqlite3
-import os
 import sys
+import os
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+import sqlite3
+from config import get_application_path
 
 
 class RaffleDatabase:
-    """Класс для управления базой данных раздач."""
 
-    def __init__(self, db_file="raffles.db"):
-        """Инициализация базы данных."""
-
-        if getattr(sys, 'frozen', False):
-            application_path = os.path.dirname(sys.executable)
-        else:
-            application_path = os.path.dirname(os.path.abspath(__file__))
-
-        self.db_file = os.path.join(application_path, db_file)
+    def __init__(self, db_file=None):
+        if db_file is None:
+            db_file = os.path.join(get_application_path(), "raffles.db")
+        self.db_file = db_file
         self.conn = None
         self.create_tables()
 
     def create_tables(self):
-        """Создание файла базы данных."""
         conn = self.connect()
         cursor = conn.cursor()
 
@@ -38,7 +32,6 @@ class RaffleDatabase:
         conn.commit()
 
     def connect(self):
-        """Подключение к базе данных."""
         if self.conn is None:
             self.conn = sqlite3.connect(self.db_file, timeout=30)
             self.conn.execute('PRAGMA journal_mode=WAL')
@@ -46,13 +39,11 @@ class RaffleDatabase:
         return self.conn
 
     def close(self):
-        """Закрытие соединения с базой данных."""
         if self.conn:
             self.conn.close()
             self.conn = None
 
     def add_raffle(self, url):
-        """Добавление новой раздачи в базу данных."""
         conn = self.connect()
         cursor = conn.cursor()
 
@@ -65,7 +56,6 @@ class RaffleDatabase:
         return rows_affected > 0
 
     def delete_raffle(self, url):
-        """Удаляет раздачу из базы данных."""
         conn = self.connect()
         cursor = conn.cursor()
 
@@ -74,7 +64,6 @@ class RaffleDatabase:
         return cursor.rowcount > 0
 
     def is_raffle_exists(self, url):
-        """Проверка, существует ли раздача в базе данных."""
         conn = self.connect()
         cursor = conn.cursor()
 
@@ -82,7 +71,6 @@ class RaffleDatabase:
         return cursor.fetchone() is not None
 
     def mark_as_processed(self, url):
-        """Отметить раздачу как обработанную."""
         conn = self.connect()
         cursor = conn.cursor()
 
@@ -94,7 +82,6 @@ class RaffleDatabase:
         return cursor.rowcount > 0
 
     def get_unprocessed_raffles(self, limit=None):
-        """Получение необработанных раздач."""
         conn = self.connect()
         cursor = conn.cursor()
 
@@ -109,21 +96,17 @@ class RaffleDatabase:
         return cursor.fetchall()
 
     def get_stats(self):
-        """Получение статистики по раздачам."""
         conn = self.connect()
         cursor = conn.cursor()
 
         stats = {}
 
-        # Общее количество раздач
         cursor.execute('SELECT COUNT(*) FROM raffles')
         stats['total'] = cursor.fetchone()[0]
 
-        # Количество необработанных раздач
         cursor.execute('SELECT COUNT(*) FROM raffles WHERE processed = 0')
         stats['unprocessed'] = cursor.fetchone()[0]
 
-        # Количество обработанных раздач
         cursor.execute('SELECT COUNT(*) FROM raffles WHERE processed = 1')
         stats['processed'] = cursor.fetchone()[0]
 
