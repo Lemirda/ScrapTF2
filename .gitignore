@@ -2,6 +2,8 @@ __pycache__/
 *.py[cod]
 *$py.class
 raffles.db
+raffles.db-shm
+raffles.db-wal
 dist/
 build/
 *.spec

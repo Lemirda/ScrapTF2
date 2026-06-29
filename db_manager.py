@@ -40,7 +40,8 @@ class RaffleDatabase:
     def connect(self):
         """Подключение к базе данных."""
         if self.conn is None:
-            self.conn = sqlite3.connect(self.db_file)
+            self.conn = sqlite3.connect(self.db_file, timeout=30)
+            self.conn.execute('PRAGMA journal_mode=WAL')
             self.conn.row_factory = sqlite3.Row
         return self.conn
 
