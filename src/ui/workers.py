@@ -5,56 +5,87 @@ import time
 import asyncio
 from PyQt6.QtCore import QThread, pyqtSignal
 from db.manager import RaffleDatabase
-from browser.scanner import run_scanner
+from browser.scanner import run_scanner_with_browser
 
 
-class LoginWorker(QThread):
-    login_finished = pyqtSignal()
+class AppWorker(QThread):
+    browser_ready = pyqtSignal()
+    login_required = pyqtSignal()
+    status_changed = pyqtSignal(dict)
 
-    def __init__(self, profile_dir, parent=None):
+    def __init__(self, profile_path, db, parent=None):
         super().__init__(parent)
-        self.profile_dir = profile_dir
-        self._should_stop = False
+        self.profile_path = profile_path
+        self.db = db
+        self.running = True
+        self._logged_in = False
+        self._should_relogin = False
         self.browser = None
 
     def run(self):
-        asyncio.run(self._run())
+        asyncio.run(self._main())
 
-    async def _run(self):
+    async def _main(self):
         import nodriver as uc
-        self.browser = await uc.start(
-            headless=False,
-            user_data_dir=self.profile_dir,
-            no_sandbox=True
-        )
-        await self.browser.get("https://scrap.tf/")
+        db = RaffleDatabase()
 
-        while not self._should_stop:
-            await asyncio.sleep(0.5)
+        while self.running:
+            self._should_relogin = False
+            self._logged_in = False
 
-        if self.browser:
-            self.browser.stop()
+            browser = await uc.start(
+                headless=False,
+                user_data_dir=self.profile_path,
+                no_sandbox=True
+            )
+            self.browser = browser
 
-        self.login_finished.emit()
+            try:
+                await browser.get("https://scrap.tf/")
+                for _ in range(6):
+                    if not self.running or self._should_relogin:
+                        break
+                    await asyncio.sleep(0.5)
+                self.browser_ready.emit()
 
-    def stop(self):
-        self._should_stop = True
+                logged_in = db.get_setting('logged_in')
+                if logged_in != '1':
+                    self.login_required.emit()
+                    while not self._logged_in and self.running and not self._should_relogin:
+                        await asyncio.sleep(0.3)
 
+                if not self.running or self._should_relogin:
+                    continue
 
-class MainWorker(QThread):
-    status_changed = pyqtSignal(dict)
+                await run_scanner_with_browser(browser, db, self)
+            finally:
+                if browser:
+                    browser.stop()
+                    self.browser = None
 
-    def __init__(self, parent=None):
-        super().__init__(parent)
-        self.running = True
+            if self._should_relogin:
+                profile_path = self.profile_path
+                import shutil
+                if os.path.exists(profile_path):
+                    shutil.rmtree(profile_path, ignore_errors=True)
+                os.makedirs(profile_path, exist_ok=True)
+                db.set_setting('logged_in', '0')
 
-    def run(self):
-        asyncio.run(run_scanner(self))
+    def login_done(self):
+        self._logged_in = True
+        self.db.set_setting('logged_in', '1')
+
+    def relogin(self):
+        self._should_relogin = True
+        self._logged_in = True
 
     def stop(self):
         self.running = False
-        self.terminate()
-        self.wait()
+        self._logged_in = True
+        self.wait(5000)
+        if self.isRunning():
+            self.terminate()
+            self.wait()
 
 
 class RaffleStatsWorker(QThread):

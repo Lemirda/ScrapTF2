@@ -55,6 +55,9 @@ async def process_unprocessed_raffles(browser, db, worker=None):
     failed_count = 0
 
     for idx, raffle in enumerate(unprocessed_raffles, 1):
+        if worker and (not worker.running or worker._should_relogin):
+            break
+
         url = raffle['url']
         
         if worker:
@@ -69,6 +72,9 @@ async def process_unprocessed_raffles(browser, db, worker=None):
         tab = await browser.get(url)
         await asyncio.sleep(random.uniform(scan_delay_min, scan_delay_max))
 
+        if worker and (not worker.running or worker._should_relogin):
+            break
+
         try:
             await tab.wait_for('.raffle-row-full-width', timeout=5)
             db.delete_raffle(url)
@@ -82,6 +88,9 @@ async def process_unprocessed_raffles(browser, db, worker=None):
             await asyncio.sleep(random.uniform(scan_delay_min, scan_delay_max))
         except Exception:
             pass
+
+        if worker and (not worker.running or worker._should_relogin):
+            break
 
         try:
             await tab.wait_for('button.btn-danger.btn-lg[onclick*="LeaveRaffle"]', timeout=40)
