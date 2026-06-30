@@ -1,18 +1,18 @@
-# Руководство по внесению изменений для чайников
+# Contributing Guide
 
 ## Pull Request
 
-1. Сделайте форк репозитория
-3. Внесите необходимые изменения
-4. Убедитесь, что всё работает корректно
-5. Сделайте коммит изменений
-6. Отправьте изменения в ваш форк
-7. Создайте Pull Request в основной репозиторий
+1. Fork the repository
+2. Make the necessary changes
+3. Make sure everything works correctly
+4. Commit your changes
+5. Push the changes to your fork
+6. Create a Pull Request to the main repository
 
 ## Issues
 
-Если вы нашли ошибку, или вы хотите предложить изменение, создайте Issue.
+If you find a bug or want to suggest a change, create an Issue.
 
 ## Discussions
 
-Если у вас есть вопросы, или вы хотите проголосовать за новые обновления, то вы можете это сделать в Discussions.
+If you have questions or want to vote on new updates, you can do so in Discussions.

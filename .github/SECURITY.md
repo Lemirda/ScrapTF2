@@ -1,14 +1,14 @@
-# Политика безопасности
+# Security Policy
 
-## Сообщение об уязвимостях
+## Reporting Vulnerabilities
 
-Если вы обнаружили уязвимость в безопасности или критическую проблему в проекте, пожалуйста:
+If you discover a security vulnerability or critical issue in the project, please:
 
-1. **НЕ** создавайте публичный Issue об этом
-2. Свяжитесь со мной напрямую через Discord
-   - Мои контактные данные можно найти в профиле GitHub
+1. Do **NOT** create a public Issue about it
+2. Contact me directly via Discord
+   - My contact details can be found in the GitHub profile
 
-Я ценю вашу ответственность и помощь в поддержании безопасности проекта. После получения сообщения об уязвимости:
+I appreciate your responsibility and help in keeping the project secure. After receiving a vulnerability report:
 
-- Буду держать вас в курсе процесса исправления
-- После исправления уязвимости, при вашем желании, добавлю вас в список благодарностей (если вы не против)
+- I will keep you updated on the fix progress
+- After the vulnerability is fixed, if you wish, I will add you to the acknowledgements (if you don't mind)

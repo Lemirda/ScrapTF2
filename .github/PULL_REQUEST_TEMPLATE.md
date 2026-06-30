@@ -1,13 +1,13 @@
-**Изменения**
+**Changes**
 <!--
-Здесь вы можете написать список изменений.
+Here you can write a list of changes.
 
-плохо: - add: Новая функция отслеживания раздач
-хорошо: - add: Добавлена новая функция отслеживания раздач
+bad: - add: New raffle tracking function
+good: - add: Added new raffle tracking function
 
-Вы можете указать своё имя после символа :cl: именно оно будет отображаться в журнале изменений.
+You can specify your name after the :cl: symbol — it will appear in the changelog.
 
-Например: :cl: Lemirda
+For example: :cl: Lemirda
 -->
 
 :cl:
