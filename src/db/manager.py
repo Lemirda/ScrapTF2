@@ -14,6 +14,15 @@ class RaffleDatabase:
         self.conn = None
         self.create_tables()
 
+    DEFAULT_SETTINGS = {
+        'language': '',
+        'logged_in': '0',
+        'scan_delay_min': '5',
+        'scan_delay_max': '10',
+        'wait_minutes_min': '5',
+        'wait_minutes_max': '20',
+    }
+
     def create_tables(self):
         conn = self.connect()
         cursor = conn.cursor()
@@ -28,6 +37,20 @@ class RaffleDatabase:
 
         cursor.execute(
             'CREATE INDEX IF NOT EXISTS idx_raffles_url ON raffles(url)')
+
+        cursor.execute('''
+        CREATE TABLE IF NOT EXISTS settings (
+            key TEXT PRIMARY KEY,
+            value TEXT NOT NULL
+        )
+        ''')
+
+        cursor.execute('SELECT COUNT(*) FROM settings')
+        if cursor.fetchone()[0] == 0:
+            for key, value in self.DEFAULT_SETTINGS.items():
+                cursor.execute(
+                    'INSERT INTO settings (key, value) VALUES (?, ?)',
+                    (key, value))
 
         conn.commit()
 
@@ -111,3 +134,24 @@ class RaffleDatabase:
         stats['processed'] = cursor.fetchone()[0]
 
         return stats
+
+    def get_setting(self, key):
+        conn = self.connect()
+        cursor = conn.cursor()
+        cursor.execute('SELECT value FROM settings WHERE key = ?', (key,))
+        row = cursor.fetchone()
+        return row[0] if row else None
+
+    def set_setting(self, key, value):
+        conn = self.connect()
+        cursor = conn.cursor()
+        cursor.execute(
+            'INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)',
+            (key, str(value)))
+        conn.commit()
+
+    def get_all_settings(self):
+        conn = self.connect()
+        cursor = conn.cursor()
+        cursor.execute('SELECT key, value FROM settings')
+        return {row[0]: row[1] for row in cursor.fetchall()}

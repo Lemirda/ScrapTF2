@@ -1,21 +1,21 @@
 ---
-name: "Сообщение об ошибке"
-about: Создайте отчет, чтобы помочь нам улучшить проект
-title: "[БАГ] "
+name: "Bug Report"
+about: Create a report to help us improve the project
+title: "[BUG] "
 labels: ''
 assignees: ''
 
 ---
 
-**Описание ошибки**
-Четкое и краткое описание ошибки.
+**Bug Description**
+A clear and concise description of the bug.
 
-**Как воспроизвести**
-Шаги для воспроизведения:
-1. Перейти к '...'
-2. Нажать на '....'
-3. Прокрутить до '....'
-4. Увидеть ошибку
+**How to Reproduce**
+Steps to reproduce the behavior:
+1. Go to '...'
+2. Click on '....'
+3. Scroll down to '....'
+4. See error
 
-**Скриншоты**
-Если возможно, добавьте скриншоты для объяснения проблемы.
+**Screenshots**
+If applicable, add screenshots to help explain the problem.

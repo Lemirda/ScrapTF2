@@ -5,23 +5,19 @@ import random
 import asyncio
 import nodriver as uc
 
-from browser.login import check_and_login
+from browser.login import get_profile_path
 from browser.scraper import collect_raffles_from_page, process_unprocessed_raffles
 from db.manager import RaffleDatabase
-from config import (
-    SCAN_DELAY_MIN, SCAN_DELAY_MAX,
-    WAIT_MINUTES_MIN, WAIT_MINUTES_MAX
-)
 
 
-async def run_scanner():
-    login_result, profile_path = await check_and_login()
-
-    if not login_result:
-        print("Authorization failed. Stopping.")
-        return
-
+async def run_scanner(worker=None):
     db = RaffleDatabase()
+    profile_path = get_profile_path()
+
+    scan_delay_min = int(db.get_setting('scan_delay_min'))
+    scan_delay_max = int(db.get_setting('scan_delay_max'))
+    wait_minutes_min = int(db.get_setting('wait_minutes_min'))
+    wait_minutes_max = int(db.get_setting('wait_minutes_max'))
 
     browser = await uc.start(
         headless=False,
@@ -33,32 +29,22 @@ async def run_scanner():
     await asyncio.sleep(5)
 
     while True:
-        stats_before = db.get_stats()
-        print(f"Stats: Total: {stats_before['total']}, Unprocessed: {stats_before['unprocessed']}, Processed: {stats_before['processed']}")
+        if worker:
+            worker.status_changed.emit({'state': 'scanning'})
 
         tab = await browser.get("https://scrap.tf/raffles")
-        await asyncio.sleep(random.uniform(SCAN_DELAY_MIN, SCAN_DELAY_MAX))
-        all_new, all_existing = await collect_raffles_from_page(tab, db)
-        print(f"Main page: {all_new} new, {all_existing} existing")
+        await asyncio.sleep(random.uniform(scan_delay_min, scan_delay_max))
+        await collect_raffles_from_page(tab, db)
 
         tab = await browser.get("https://scrap.tf/raffles/ending")
-        await asyncio.sleep(random.uniform(SCAN_DELAY_MIN, SCAN_DELAY_MAX))
-        ending_new, ending_existing = await collect_raffles_from_page(tab, db)
-        print(f"Ending page: {ending_new} new, {ending_existing} existing")
+        await asyncio.sleep(random.uniform(scan_delay_min, scan_delay_max))
+        await collect_raffles_from_page(tab, db)
 
-        total_new = ending_new + all_new
-        total_existing = ending_existing + all_existing
-        print(f"Total: {total_new} new, {total_existing} existing")
+        if worker:
+            worker.status_changed.emit({'state': 'processing'})
 
-        stats_after = db.get_stats()
+        await process_unprocessed_raffles(browser, db, worker)
 
-        await process_unprocessed_raffles(browser, db)
-
-        stats_final = db.get_stats()
-        print(f"Result: {stats_final['total']} in DB, {stats_final['unprocessed']} pending, {stats_final['processed']} processed")
-
-        wait_minutes = random.uniform(WAIT_MINUTES_MIN, WAIT_MINUTES_MAX)
+        wait_minutes = random.uniform(wait_minutes_min, wait_minutes_max)
         wait_seconds = int(wait_minutes * 60)
-        print(f"Next scan in {wait_minutes:.1f} minutes")
-
         await asyncio.sleep(wait_seconds)
