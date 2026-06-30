@@ -36,7 +36,7 @@ def build_exe():
         shutil.rmtree("build")
 
     project_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    desktop_app_path = os.path.join(project_dir, "src", "ui", "app.py")
+    main_path = os.path.join(project_dir, "main.py")
 
     pyinstaller_args = [
         sys.executable, "-m", "PyInstaller",
@@ -47,9 +47,22 @@ def build_exe():
         "--name", "ScrapTF2",
         "--icon", os.path.join(project_dir, "icon.ico"),
         "--hidden-import", "PyQt6.QtChart",
+        "--hidden-import", "ui",
+        "--hidden-import", "ui.styles",
+        "--hidden-import", "ui.workers",
+        "--hidden-import", "ui.i18n",
+        "--hidden-import", "ui.app",
+        "--hidden-import", "browser",
+        "--hidden-import", "browser.login",
+        "--hidden-import", "browser.scanner",
+        "--hidden-import", "browser.scraper",
+        "--hidden-import", "db",
+        "--hidden-import", "db.manager",
+        "--hidden-import", "config",
         "--collect-all", "PyQt6",
         "--paths", project_dir,
-        desktop_app_path
+        "--paths", os.path.join(project_dir, "src"),
+        main_path
     ]
 
     run_cmd(pyinstaller_args)

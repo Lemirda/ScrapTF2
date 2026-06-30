@@ -484,15 +484,15 @@ class StatsCounter(QFrame):
         layout = QVBoxLayout(self)
         layout.setContentsMargins(15, 15, 15, 15)
 
-        title_label = QLabel(title)
-        title_label.setStyleSheet(f"color: {COLORS['text_secondary'].name()}; font-size: 12px; font-weight: bold;")
-        title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.title_label = QLabel(title)
+        self.title_label.setStyleSheet(f"color: {COLORS['text_secondary'].name()}; font-size: 12px; font-weight: bold;")
+        self.title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         self.value_label = QLabel("0")
         self.value_label.setStyleSheet(f"color: {color.name()}; font-size: 24px; font-weight: bold;")
         self.value_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
-        layout.addWidget(title_label)
+        layout.addWidget(self.title_label)
         layout.addWidget(self.value_label)
 
 
@@ -894,12 +894,24 @@ class ScrapTF2App(QMainWindow):
         self.stack.setCurrentWidget(self.login_screen)
 
     def show_main_app(self):
+        self.refresh_ui_language()
         self.stack.setCurrentWidget(self.main_screen)
 
         if not hasattr(self, 'raffle_stats_worker') or not self.raffle_stats_worker or not self.raffle_stats_worker.isRunning():
             self.raffle_stats_worker = RaffleStatsWorker()
             self.raffle_stats_worker.stats_updated.connect(self.update_raffle_stats)
             self.raffle_stats_worker.start()
+
+    def refresh_ui_language(self):
+        lang = self.db.get_setting('language') or 'en'
+
+        self.total_card.title_label.setText(get_text('total', lang))
+        self.processed_card.title_label.setText(get_text('processed', lang))
+        self.unprocessed_card.title_label.setText(get_text('pending', lang))
+
+        self.status_card._lang = lang
+        self.status_card.step_timeline.set_language(lang)
+        self.status_card.state_label.setText(get_text('state_starting', lang))
 
     def create_main_screen(self):
         widget = QWidget()
@@ -996,17 +1008,17 @@ class ScrapTF2App(QMainWindow):
         stats_layout.setContentsMargins(15, 10, 15, 10)
         stats_layout.setSpacing(20)
 
-        total_card = StatsCounter(get_text('total', lang), COLORS['accent'])
-        self.total_counter = total_card.value_label
-        stats_layout.addWidget(total_card)
+        self.total_card = StatsCounter(get_text('total', lang), COLORS['accent'])
+        self.total_counter = self.total_card.value_label
+        stats_layout.addWidget(self.total_card)
 
-        processed_card = StatsCounter(get_text('processed', lang), COLORS['success'])
-        self.processed_counter = processed_card.value_label
-        stats_layout.addWidget(processed_card)
+        self.processed_card = StatsCounter(get_text('processed', lang), COLORS['success'])
+        self.processed_counter = self.processed_card.value_label
+        stats_layout.addWidget(self.processed_card)
 
-        unprocessed_card = StatsCounter(get_text('pending', lang), COLORS['warning'])
-        self.unprocessed_counter = unprocessed_card.value_label
-        stats_layout.addWidget(unprocessed_card)
+        self.unprocessed_card = StatsCounter(get_text('pending', lang), COLORS['warning'])
+        self.unprocessed_counter = self.unprocessed_card.value_label
+        stats_layout.addWidget(self.unprocessed_card)
 
         parent_layout.addWidget(stats_frame)
 
