@@ -272,7 +272,7 @@ class ScrapTF2App(QMainWindow):
         if os.path.exists(icon_path):
             self.setWindowIcon(QIcon(icon_path))
         else:
-            print("[Система] Иконка приложения не найдена:", icon_path)
+            print("[System] Application icon not found:", icon_path)
 
     def init_workers(self):
         self.console_output = ConsoleOutput()
@@ -350,15 +350,15 @@ class ScrapTF2App(QMainWindow):
         stats_layout.setContentsMargins(15, 10, 15, 10)
         stats_layout.setSpacing(20)
 
-        total_card = StatsCounter("Всего", COLORS['accent'])
+        total_card = StatsCounter("Total", COLORS['accent'])
         self.total_counter = total_card.value_label
         stats_layout.addWidget(total_card)
 
-        processed_card = StatsCounter("Обработано", COLORS['success'])
+        processed_card = StatsCounter("Processed", COLORS['success'])
         self.processed_counter = processed_card.value_label
         stats_layout.addWidget(processed_card)
 
-        unprocessed_card = StatsCounter("Ожидают", COLORS['warning'])
+        unprocessed_card = StatsCounter("Pending", COLORS['warning'])
         self.unprocessed_counter = unprocessed_card.value_label
         stats_layout.addWidget(unprocessed_card)
 
@@ -370,13 +370,13 @@ class ScrapTF2App(QMainWindow):
 
     def update_console(self, text):
         color = COLORS['text'].name()
-        if "ошибка" in text.lower() or "error" in text.lower():
+        if "error" in text.lower():
             color = COLORS['danger'].name()
-        elif "успешно" in text.lower() or "success" in text.lower():
+        elif "success" in text.lower():
             color = COLORS['success'].name()
-        elif "предупреждение" in text.lower() or "warning" in text.lower():
+        elif "warning" in text.lower():
             color = COLORS['warning'].name()
-        elif "[система]" in text.lower():
+        elif "[system]" in text.lower():
             color = COLORS['accent'].name()
 
         escaped_text = text.replace("<", "&lt;").replace(">", "&gt;")

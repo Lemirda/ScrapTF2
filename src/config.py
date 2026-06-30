@@ -9,10 +9,6 @@ def get_application_path():
     return os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
-BASE_URL = "https://scrap.tf"
-RAFFLES_URL = "https://scrap.tf/raffles"
-RAFFLES_ENDING_URL = "https://scrap.tf/raffles/ending"
-
 SCAN_DELAY_MIN = 5.0
 SCAN_DELAY_MAX = 10.0
 WAIT_MINUTES_MIN = 5

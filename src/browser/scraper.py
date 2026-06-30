@@ -3,7 +3,7 @@ import os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import random
 import asyncio
-from config import BASE_URL, SCAN_DELAY_MIN, SCAN_DELAY_MAX
+from config import SCAN_DELAY_MIN, SCAN_DELAY_MAX
 
 
 async def collect_raffles_from_page(tab, db):
@@ -17,7 +17,7 @@ async def collect_raffles_from_page(tab, db):
     ''')
 
     if not raffle_links:
-        print("Не удалось найти ни одной ссылки на раздачу!")
+        print("No raffle links found!")
         return 0, 0
 
     new_raffles = 0
@@ -28,7 +28,7 @@ async def collect_raffles_from_page(tab, db):
             link = link['value']
 
         if not link.startswith('https://scrap.tf'):
-            link = f"{BASE_URL}{link}"
+            link = f"https://scrap.tf{link}"
 
         if not db.is_raffle_exists(link):
             if db.add_raffle(link):
@@ -43,24 +43,24 @@ async def process_unprocessed_raffles(browser, db):
     unprocessed_raffles = db.get_unprocessed_raffles()
 
     if not unprocessed_raffles:
-        print("Нет необработанных раздач для участия.")
+        print("No unprocessed raffles to enter.")
         return
 
-    print(f"Найдено {len(unprocessed_raffles)} необработанных раздач для участия.")
+    print(f"Found {len(unprocessed_raffles)} unprocessed raffles to enter.")
 
     processed_count = 0
     failed_count = 0
 
     for raffle in unprocessed_raffles:
         url = raffle['url']
-        print(f"\nПереход по ссылке: {url}")
+        print(f"\nNavigating to: {url}")
 
         tab = await browser.get(url)
         await asyncio.sleep(random.uniform(SCAN_DELAY_MIN, SCAN_DELAY_MAX))
 
         try:
             await tab.wait_for('.raffle-row-full-width', timeout=5)
-            print("Раздача уже закончилась. Удаляем из базы данных.")
+            print("Raffle already ended. Removing from database.")
             db.delete_raffle(url)
             continue
         except Exception:
@@ -68,21 +68,21 @@ async def process_unprocessed_raffles(browser, db):
 
         try:
             enter_button = await tab.wait_for('button.btn-info.btn-lg[onclick*="EnterRaffle"]:not([id="raffle-enter"])', timeout=5)
-            print("Найдена кнопка 'Enter Raffle'. Нажимаем...")
+            print("Found 'Enter Raffle' button. Clicking...")
             await enter_button.click()
             await asyncio.sleep(random.uniform(SCAN_DELAY_MIN, SCAN_DELAY_MAX))
         except Exception:
-            print("Не удалось найти кнопку Enter Raffle")
+            print("Enter Raffle button not found")
 
         try:
             await tab.wait_for('button.btn-danger.btn-lg[onclick*="LeaveRaffle"]', timeout=40)
-            print("Успешно вступили в раздачу!")
+            print("Successfully entered raffle!")
             db.mark_as_processed(url)
             processed_count += 1
         except Exception:
-            print("Не удалось найти кнопку LeaveRaffle")
+            print("LeaveRaffle button not found")
             failed_count += 1
 
         await asyncio.sleep(random.uniform(3.0, 5.0))
 
-    print(f"\nОбработка раздач завершена: успешно обработано {processed_count}, не удалось обработать {failed_count}")
+    print(f"\nRaffle processing done: {processed_count} succeeded, {failed_count} failed")

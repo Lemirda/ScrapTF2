@@ -19,9 +19,9 @@ async def check_and_login():
 
 
 async def perform_login(profile_dir):
-    print("\n=== ТРЕБУЕТСЯ АВТОРИЗАЦИЯ ===")
-    print("Сейчас откроется браузер. Вам необходимо войти в аккаунт Steam на сайте scrap.tf")
-    print(f"У вас есть {LOGIN_TIMEOUT_MINUTES} минут для авторизации.")
+    print("\n=== AUTHORIZATION REQUIRED ===")
+    print("A browser window will open. Please log in to your Steam account on scrap.tf")
+    print(f"You have {LOGIN_TIMEOUT_MINUTES} minutes to authorize.")
 
     browser = await uc.start(
         headless=False,
@@ -31,14 +31,14 @@ async def perform_login(profile_dir):
 
     await browser.get("https://scrap.tf/")
 
-    print(f"\nОжидание авторизации: {LOGIN_TIMEOUT_MINUTES} минут")
+    print(f"\nWaiting for authorization: {LOGIN_TIMEOUT_MINUTES} minutes")
     for i in range(LOGIN_TIMEOUT_MINUTES, 0, -1):
-        print(f"Осталось времени: {i} минут...")
+        print(f"Time remaining: {i} minutes...")
         await asyncio.sleep(60)
 
-    print("\n=== Время на авторизацию истекло ===")
-    print("Надеемся, вы успели войти в аккаунт.")
-    print("Браузер будет закрыт. Профиль сохранен.")
+    print("\n=== Authorization time expired ===")
+    print("Hope you managed to log in.")
+    print("Browser will be closed. Profile saved.")
 
     browser.stop()
     return True
