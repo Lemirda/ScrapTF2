@@ -1,11 +1,3 @@
-# ScrapTF2
-
-<div align="center">
-
-<img src="https://github.com/user-attachments/assets/47af9449-9afe-45e5-9459-c7b111681c7c" alt="ScrapTF2 Screenshot" width="800"/>
-
-</div>
-
 Инструмент для автоматического участия в розыгрышах на [Scrap.TF](https://scrap.tf). Программа сканирует страницы с активными розыгрышами, добавляет их в локальную базу данных и участвует в них от вашего аккаунта.
 
 ## Как это работает

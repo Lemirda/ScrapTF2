@@ -1,11 +1,3 @@
-# ScrapTF2
-
-<div align="center">
-
-<img src="https://github.com/user-attachments/assets/47af9449-9afe-45e5-9459-c7b111681c7c" alt="ScrapTF2 Screenshot" width="800"/>
-
-</div>
-
 A tool for automated participation in raffles on [Scrap.TF](https://scrap.tf). The program scans active raffle pages, stores them in a local database, and enters them on your behalf.
 
 ## How it works
