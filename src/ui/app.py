@@ -247,14 +247,14 @@ class NavButton(QPushButton):
         layout.addStretch()
 
 
-class ScrapTFApp(QMainWindow):
+class ScrapTF2App(QMainWindow):
     def __init__(self):
         super().__init__()
         self.init_ui()
         self.init_workers()
 
     def init_ui(self):
-        self.setWindowTitle("ScrapTF")
+        self.setWindowTitle("ScrapTF2")
         self.setMinimumSize(1200, 800)
         self.load_icon()
         self.setup_dark_theme()
@@ -414,6 +414,6 @@ class ScrapTFApp(QMainWindow):
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
-    window = ScrapTFApp()
+    window = ScrapTF2App()
     window.show()
     sys.exit(app.exec())

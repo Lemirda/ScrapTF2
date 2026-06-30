@@ -8,8 +8,8 @@ def cleanup():
     if os.path.exists("build"):
         shutil.rmtree("build")
 
-    if os.path.exists("ScrapTF.spec"):
-        os.remove("ScrapTF.spec")
+    if os.path.exists("ScrapTF2.spec"):
+        os.remove("ScrapTF2.spec")
 
 
 def run_cmd(args):
@@ -44,7 +44,7 @@ def build_exe():
         "--clean",
         "--onefile",
         "--windowed",
-        "--name", "ScrapTF",
+        "--name", "ScrapTF2",
         "--icon", os.path.join(project_dir, "icon.ico"),
         "--hidden-import", "PyQt6.QtChart",
         "--collect-all", "PyQt6",
