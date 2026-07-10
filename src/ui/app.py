@@ -20,7 +20,7 @@ from PyQt6.QtGui import (
 from ui.styles import COLORS, rgba
 from ui.workers import AppWorker, RaffleStatsWorker
 from ui.i18n import get_text
-from config import get_application_path
+from config import resource_path
 from db.manager import RaffleDatabase
 from browser.login import get_profile_path
 
@@ -937,7 +937,7 @@ class ScrapTF2App(QMainWindow):
         self.stack.addWidget(self.main_screen)
 
     def load_icon(self):
-        icon_path = os.path.join(get_application_path(), "icon.ico")
+        icon_path = resource_path("icon.ico")
         if os.path.exists(icon_path):
             self.setWindowIcon(QIcon(icon_path))
 

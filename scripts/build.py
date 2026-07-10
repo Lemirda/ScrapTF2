@@ -46,6 +46,7 @@ def build_exe():
         "--windowed",
         "--name", "ScrapTF2",
         "--icon", os.path.join(project_dir, "icon.ico"),
+        "--add-data", os.path.join(project_dir, "icon.ico") + os.pathsep + ".",
         "--hidden-import", "PyQt6.QtChart",
         "--hidden-import", "ui",
         "--hidden-import", "ui.styles",
