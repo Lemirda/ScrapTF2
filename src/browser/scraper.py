@@ -3,13 +3,12 @@ import os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import random
 import asyncio
-from db.manager import RaffleDatabase
 
 
 async def collect_raffles_from_page(tab, db):
     scan_delay_min = int(db.get_setting('scan_delay_min'))
     scan_delay_max = int(db.get_setting('scan_delay_max'))
-    
+
     await tab.wait_for('#raffles-list', timeout=30)
     await asyncio.sleep(random.uniform(scan_delay_min, scan_delay_max))
 
@@ -44,7 +43,7 @@ async def collect_raffles_from_page(tab, db):
 async def process_unprocessed_raffles(browser, db, worker=None):
     scan_delay_min = int(db.get_setting('scan_delay_min'))
     scan_delay_max = int(db.get_setting('scan_delay_max'))
-    
+
     unprocessed_raffles = db.get_unprocessed_raffles()
 
     if not unprocessed_raffles:
@@ -55,11 +54,11 @@ async def process_unprocessed_raffles(browser, db, worker=None):
     failed_count = 0
 
     for idx, raffle in enumerate(unprocessed_raffles, 1):
-        if worker and (not worker.running or worker._should_relogin):
+        if worker and worker.is_interrupted():
             break
 
         url = raffle['url']
-        
+
         if worker:
             worker.status_changed.emit({
                 'state': 'processing',
@@ -72,31 +71,34 @@ async def process_unprocessed_raffles(browser, db, worker=None):
         tab = await browser.get(url)
         await asyncio.sleep(random.uniform(scan_delay_min, scan_delay_max))
 
-        if worker and (not worker.running or worker._should_relogin):
+        if worker and worker.is_interrupted():
             break
 
         try:
             await tab.wait_for('.raffle-row-full-width', timeout=5)
             db.delete_raffle(url)
             continue
-        except Exception:
+        except Exception:  # pylint: disable=broad-exception-caught  # any browser error: skip raffle
             pass
 
         try:
-            enter_button = await tab.wait_for('button.btn-info.btn-lg[onclick*="EnterRaffle"]:not([id="raffle-enter"])', timeout=5)
+            enter_selector = (
+                'button.btn-info.btn-lg[onclick*="EnterRaffle"]:not([id="raffle-enter"])'
+            )
+            enter_button = await tab.wait_for(enter_selector, timeout=5)
             await enter_button.click()
             await asyncio.sleep(random.uniform(scan_delay_min, scan_delay_max))
-        except Exception:
+        except Exception:  # pylint: disable=broad-exception-caught  # no enter button: skip raffle
             pass
 
-        if worker and (not worker.running or worker._should_relogin):
+        if worker and worker.is_interrupted():
             break
 
         try:
             await tab.wait_for('button.btn-danger.btn-lg[onclick*="LeaveRaffle"]', timeout=40)
             db.mark_as_processed(url)
             processed_count += 1
-        except Exception:
+        except Exception:  # pylint: disable=broad-exception-caught  # entry not confirmed: count as failed
             failed_count += 1
 
         await asyncio.sleep(random.uniform(3.0, 5.0))

@@ -1,3 +1,33 @@
 [MASTER]
 extension-pkg-whitelist=PyQt6
 init-hook='import sys; sys.path.insert(0, "src")'
+
+[FORMAT]
+max-line-length=120
+
+[DESIGN]
+# Realistic limits for PyQt widget/construction code (checks stay active).
+max-args=6
+max-positional-arguments=6
+max-attributes=12
+max-statements=60
+
+[MESSAGES CONTROL]
+# Only unavoidable PyQt patterns are disabled globally:
+#  - docstrings: none used across this small GUI app
+#  - wrong-import-position: every module does sys.path.insert() before imports
+#  - invalid-name: Qt-style camelCase overrides (setValue, setMaximum, ...)
+#  - attribute-defined-outside-init: widgets built in create_*/init_ui helpers
+#  - unused-argument: required Qt event handler signatures (event, ...)
+#  - import-outside-toplevel: lazy imports of heavy/optional deps (nodriver, shutil)
+# Everything else (protected-access, broad-except, too-many-*) is fixed in code
+# or suppressed locally with an inline comment where genuinely justified.
+disable=
+    missing-module-docstring,
+    missing-class-docstring,
+    missing-function-docstring,
+    wrong-import-position,
+    invalid-name,
+    attribute-defined-outside-init,
+    unused-argument,
+    import-outside-toplevel

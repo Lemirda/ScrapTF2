@@ -71,6 +71,10 @@ class AppWorker(QThread):
                 os.makedirs(profile_path, exist_ok=True)
                 db.set_setting('logged_in', '0')
 
+    def is_interrupted(self):
+        """True when the scan loop should stop (worker stopped or a relogin was requested)."""
+        return not self.running or self._should_relogin
+
     def login_done(self):
         self._logged_in = True
         self.db.set_setting('logged_in', '1')

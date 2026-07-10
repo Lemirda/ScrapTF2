@@ -1,20 +1,23 @@
+# pylint: disable=too-many-lines
+# This module holds all widgets, screens and the main window in one place.
+# Splitting it into ui/widgets.py + ui/screens.py is a worthwhile future refactor.
 import sys
 import os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from PyQt6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
     QLabel, QFrame, QSizePolicy, QPushButton, QStackedWidget,
-    QSpinBox, QGroupBox, QGraphicsOpacityEffect, QGraphicsDropShadowEffect
+    QSpinBox, QGraphicsDropShadowEffect
 )
 from PyQt6.QtCore import (
-    Qt, QTimer, QPropertyAnimation, QEasingCurve,
-    QVariantAnimation, pyqtProperty, QPointF, QRectF
+    Qt, QTimer, QEasingCurve,
+    QVariantAnimation, QPointF, QRectF
 )
 from PyQt6.QtGui import (
     QIcon, QPalette, QColor, QPainter, QPen, QFont,
     QLinearGradient, QRadialGradient
 )
-from ui.styles import COLORS
+from ui.styles import COLORS, rgba
 from ui.workers import AppWorker, RaffleStatsWorker
 from ui.i18n import get_text
 from config import get_application_path
@@ -124,17 +127,22 @@ class IconButton(QPushButton):
         self.setStyleSheet(f"""
             QPushButton {{
                 background-color: {COLORS['nav_bg'].name()};
-                color: {COLORS['text'].name()};
+                color: {COLORS['text_secondary'].name()};
                 border: none;
-                border-radius: 10px;
-                font-size: 24px;
+                border-radius: 12px;
+                font-size: 22px;
             }}
             QPushButton:checked {{
-                background-color: {COLORS['accent'].name()};
+                background-color: qlineargradient(
+                    x1:0, y1:0, x2:1, y2:1,
+                    stop:0 {COLORS['accent'].name()},
+                    stop:1 {COLORS['accent2'].name()}
+                );
                 color: white;
             }}
-            QPushButton:hover {{
+            QPushButton:hover:!checked {{
                 background-color: {COLORS['nav_active'].name()};
+                color: {COLORS['text'].name()};
             }}
         """)
 
@@ -227,50 +235,54 @@ class StepTimeline(QWidget):
         painter = QPainter(self)
         painter.setRenderHint(QPainter.RenderHint.Antialiasing)
 
-        step_keys = ['step_scan', 'step_process', 'step_done']
+        step_keys = ['step_scan', 'step_process', 'step_wait']
         labels = [get_text(k, self._lang) for k in step_keys]
         n = len(labels)
         step_w = self.width() / n
+        cy = self.height() / 2
 
         for i, label in enumerate(labels):
             x = step_w * i
             cx = x + 14
-            cy = self.height() / 2
-
             if i < n - 1:
-                nx = step_w * (i + 1) + 14
-                alpha = 180 if i < self._active_step else 50
-                lc = QColor(self._color if i < self._active_step else COLORS['text_secondary'])
-                lc.setAlpha(alpha)
-                pen = QPen(lc, 2)
-                pen.setCapStyle(Qt.PenCapStyle.RoundCap)
-                painter.setPen(pen)
-                painter.drawLine(QPointF(cx + 9, cy), QPointF(nx - 9, cy))
+                self._draw_connector(painter, i, cx, cy, step_w * (i + 1) + 14)
+            self._draw_node(painter, i, cx, cy)
+            self._draw_label(painter, i, label, QRectF(x, cy + 9, step_w, 14))
 
-            if i in self._completed_steps:
-                cc = COLORS['success']
-                painter.setPen(QPen(cc, 2))
-                painter.setBrush(cc)
-                painter.drawEllipse(QPointF(cx, cy), 6, 6)
-                painter.setPen(QPen(QColor(255, 255, 255), 2))
-                painter.drawLine(QPointF(cx - 3, cy), QPointF(cx - 1, cy + 2))
-                painter.drawLine(QPointF(cx - 1, cy + 2), QPointF(cx + 3, cy - 3))
-            elif i == self._active_step:
-                painter.setPen(QPen(self._color, 2.5))
-                painter.setBrush(Qt.BrushStyle.NoBrush)
-                painter.drawEllipse(QPointF(cx, cy), 8, 8)
-                painter.setBrush(self._color)
-                painter.drawEllipse(QPointF(cx, cy), 3.5, 3.5)
-            else:
-                painter.setPen(QPen(COLORS['text_secondary'], 2))
-                painter.setBrush(Qt.BrushStyle.NoBrush)
-                painter.drawEllipse(QPointF(cx, cy), 6, 6)
+    def _draw_connector(self, painter, i, cx, cy, nx):
+        alpha = 180 if i < self._active_step else 50
+        lc = QColor(self._color if i < self._active_step else COLORS['text_secondary'])
+        lc.setAlpha(alpha)
+        pen = QPen(lc, 2)
+        pen.setCapStyle(Qt.PenCapStyle.RoundCap)
+        painter.setPen(pen)
+        painter.drawLine(QPointF(cx + 9, cy), QPointF(nx - 9, cy))
 
-            text_color = COLORS['text'] if i <= self._active_step else COLORS['text_secondary']
-            painter.setPen(QPen(text_color, 1))
-            font = QFont("Segoe UI", 8)
-            painter.setFont(font)
-            painter.drawText(QRectF(x, cy + 9, step_w, 14), Qt.AlignmentFlag.AlignCenter, label)
+    def _draw_node(self, painter, i, cx, cy):
+        if i in self._completed_steps:
+            cc = COLORS['success']
+            painter.setPen(QPen(cc, 2))
+            painter.setBrush(cc)
+            painter.drawEllipse(QPointF(cx, cy), 6, 6)
+            painter.setPen(QPen(QColor(255, 255, 255), 2))
+            painter.drawLine(QPointF(cx - 3, cy), QPointF(cx - 1, cy + 2))
+            painter.drawLine(QPointF(cx - 1, cy + 2), QPointF(cx + 3, cy - 3))
+        elif i == self._active_step:
+            painter.setPen(QPen(self._color, 2.5))
+            painter.setBrush(Qt.BrushStyle.NoBrush)
+            painter.drawEllipse(QPointF(cx, cy), 8, 8)
+            painter.setBrush(self._color)
+            painter.drawEllipse(QPointF(cx, cy), 3.5, 3.5)
+        else:
+            painter.setPen(QPen(COLORS['text_secondary'], 2))
+            painter.setBrush(Qt.BrushStyle.NoBrush)
+            painter.drawEllipse(QPointF(cx, cy), 6, 6)
+
+    def _draw_label(self, painter, i, label, rect):
+        text_color = COLORS['text'] if i <= self._active_step else COLORS['text_secondary']
+        painter.setPen(QPen(text_color, 1))
+        painter.setFont(QFont("Segoe UI", 8))
+        painter.drawText(rect, Qt.AlignmentFlag.AlignCenter, label)
 
 
 class GradientProgressBar(QWidget):
@@ -334,9 +346,7 @@ class GradientProgressBar(QWidget):
         if self._percentage <= 0:
             return
 
-        fill_w = int(self.width() * self._percentage / 100.0)
-        if fill_w < 6:
-            fill_w = 6
+        fill_w = max(6, int(self.width() * self._percentage / 100.0))
 
         gradient = QLinearGradient(0, 0, fill_w, 0)
         gradient.setColorAt(0.0, self._color.darker(115))
@@ -359,13 +369,13 @@ class StatusCard(QFrame):
         self.setStyleSheet(f"""
             StatusCard {{
                 background-color: {COLORS['card_bg'].name()};
-                border-radius: 10px;
-                padding: 20px;
+                border: 1px solid {COLORS['border'].name()};
+                border-radius: 14px;
             }}
         """)
 
         layout = QVBoxLayout(self)
-        layout.setContentsMargins(20, 18, 20, 18)
+        layout.setContentsMargins(22, 20, 22, 20)
         layout.setSpacing(12)
 
         row1 = QHBoxLayout()
@@ -408,6 +418,10 @@ class StatusCard(QFrame):
         self._color_anim.setEasingCurve(QEasingCurve.Type.OutCubic)
         self._color_anim.valueChanged.connect(self._on_color_transition)
 
+    def set_language(self, lang):
+        self._lang = lang
+        self.step_timeline.set_language(lang)
+
     def _on_color_transition(self, t):
         c = QColor(
             int(self._start_color.red() + (self._target_color.red() - self._start_color.red()) * t),
@@ -444,6 +458,14 @@ class StatusCard(QFrame):
             self.step_timeline.mark_completed(0)
             self.step_timeline.set_active(1, color)
 
+        elif state == 'waiting':
+            self.loader.stop()
+            self.progress_bar.reset()
+            self.percentage_label.setText("")
+            self.step_timeline.mark_completed(0)
+            self.step_timeline.mark_completed(1)
+            self.step_timeline.set_active(2, color)
+
         else:
             self.loader.stop()
             self.progress_bar.reset()
@@ -464,35 +486,65 @@ class StatusCard(QFrame):
 
 
 class StatsCounter(QFrame):
-    def __init__(self, title, color=COLORS['accent'], parent=None):
+    def __init__(self, title, color=COLORS['accent'], icon="", parent=None):
         super().__init__(parent)
+        self.color = color
         self.setFrameShape(QFrame.Shape.StyledPanel)
         self.apply_style()
-        self.create_layout(title, color)
+        self.create_layout(title, color, icon)
+
+        shadow = QGraphicsDropShadowEffect(self)
+        shadow.setBlurRadius(24)
+        shadow.setColor(QColor(0, 0, 0, 120))
+        shadow.setOffset(0, 6)
+        self.setGraphicsEffect(shadow)
 
     def apply_style(self):
         self.setStyleSheet(f"""
             StatsCounter {{
                 background-color: {COLORS['card_bg'].name()};
-                border-radius: 10px;
-                padding: 15px;
+                border: 1px solid {COLORS['border'].name()};
+                border-radius: 14px;
+            }}
+            StatsCounter:hover {{
+                background-color: {COLORS['card_hover'].name()};
+                border: 1px solid {self.color.name()};
             }}
         """)
         self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
 
-    def create_layout(self, title, color):
+    def create_layout(self, title, color, icon):
         layout = QVBoxLayout(self)
-        layout.setContentsMargins(15, 15, 15, 15)
+        layout.setContentsMargins(18, 16, 18, 16)
+        layout.setSpacing(8)
+
+        header = QHBoxLayout()
+        header.setSpacing(10)
+
+        self.icon_label = QLabel(icon)
+        self.icon_label.setFixedSize(34, 34)
+        self.icon_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.icon_label.setStyleSheet(f"""
+            background-color: {rgba(color, 0.16)};
+            color: {color.name()};
+            border-radius: 10px;
+            font-size: 16px;
+        """)
+        header.addWidget(self.icon_label)
 
         self.title_label = QLabel(title)
-        self.title_label.setStyleSheet(f"color: {COLORS['text_secondary'].name()}; font-size: 12px; font-weight: bold;")
-        self.title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.title_label.setStyleSheet(
+            f"color: {COLORS['text_secondary'].name()}; font-size: 12px; "
+            f"font-weight: bold; letter-spacing: 0.5px;"
+        )
+        header.addWidget(self.title_label, 1)
+
+        layout.addLayout(header)
 
         self.value_label = QLabel("0")
-        self.value_label.setStyleSheet(f"color: {color.name()}; font-size: 24px; font-weight: bold;")
-        self.value_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.value_label.setStyleSheet(f"color: {color.name()}; font-size: 30px; font-weight: bold;")
+        self.value_label.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
 
-        layout.addWidget(self.title_label)
         layout.addWidget(self.value_label)
 
 
@@ -519,43 +571,39 @@ class LanguageSelectionScreen(QWidget):
 
         ru_button = QPushButton("🇷🇺  Русский")
         ru_button.setFixedSize(200, 80)
-        ru_button.setStyleSheet(f"""
-            QPushButton {{
-                background-color: {COLORS['card_bg'].name()};
-                color: {COLORS['text'].name()};
-                border: 2px solid {COLORS['accent'].name()};
-                border-radius: 10px;
-                font-size: 18px;
-                font-weight: bold;
-            }}
-            QPushButton:hover {{
-                background-color: {COLORS['accent'].name()};
-            }}
-        """)
+        ru_button.setStyleSheet(self._lang_button_style())
         ru_button.setCursor(Qt.CursorShape.PointingHandCursor)
         ru_button.clicked.connect(lambda: self.select_language('ru'))
         buttons_layout.addWidget(ru_button)
 
         en_button = QPushButton("🇺🇸  English")
         en_button.setFixedSize(200, 80)
-        en_button.setStyleSheet(f"""
-            QPushButton {{
-                background-color: {COLORS['card_bg'].name()};
-                color: {COLORS['text'].name()};
-                border: 2px solid {COLORS['accent'].name()};
-                border-radius: 10px;
-                font-size: 18px;
-                font-weight: bold;
-            }}
-            QPushButton:hover {{
-                background-color: {COLORS['accent'].name()};
-            }}
-        """)
+        en_button.setStyleSheet(self._lang_button_style())
         en_button.setCursor(Qt.CursorShape.PointingHandCursor)
         en_button.clicked.connect(lambda: self.select_language('en'))
         buttons_layout.addWidget(en_button)
 
         layout.addLayout(buttons_layout)
+
+    def _lang_button_style(self):
+        return f"""
+            QPushButton {{
+                background-color: {COLORS['card_bg'].name()};
+                color: {COLORS['text'].name()};
+                border: 1px solid {COLORS['border'].name()};
+                border-radius: 14px;
+                font-size: 18px;
+                font-weight: bold;
+            }}
+            QPushButton:hover {{
+                background-color: {COLORS['card_hover'].name()};
+                border: 2px solid {COLORS['accent'].name()};
+                color: white;
+            }}
+            QPushButton:pressed {{
+                background-color: {COLORS['accent'].darker(115).name()};
+            }}
+        """
 
     def select_language(self, lang):
         self.db.set_setting('language', lang)
@@ -595,14 +643,21 @@ class LoginScreen(QWidget):
         self.done_button.setFixedSize(200, 60)
         self.done_button.setStyleSheet(f"""
             QPushButton {{
-                background-color: {COLORS['accent'].name()};
+                background-color: qlineargradient(
+                    x1:0, y1:0, x2:1, y2:1,
+                    stop:0 {COLORS['accent'].name()},
+                    stop:1 {COLORS['accent2'].name()}
+                );
                 color: white;
                 border: none;
-                border-radius: 10px;
+                border-radius: 14px;
                 font-size: 20px;
                 font-weight: bold;
             }}
             QPushButton:hover {{
+                background-color: {COLORS['accent'].lighter(110).name()};
+            }}
+            QPushButton:pressed {{
                 background-color: {COLORS['accent'].darker(120).name()};
             }}
         """)
@@ -634,19 +689,25 @@ class SectionHeader(QWidget):
 
         line = QFrame()
         line.setFixedHeight(1)
-        line.setStyleSheet(f"background-color: {COLORS['card_bg'].lighter(140).name()}; border: none;")
+        line.setStyleSheet(f"background-color: {COLORS['border'].name()}; border: none;")
 
-        label = QLabel(text)
-        label.setStyleSheet(f"color: {COLORS['text_secondary'].name()}; font-size: 12px; font-weight: bold;")
+        self.label = QLabel(text)
+        self.label.setStyleSheet(
+            f"color: {COLORS['text_secondary'].name()}; font-size: 12px; "
+            f"font-weight: bold; letter-spacing: 0.5px;"
+        )
 
-        layout.addWidget(label)
+        layout.addWidget(self.label)
         layout.addWidget(line, 1)
+
+    def set_text(self, text):
+        self.label.setText(text)
 
 
 class SettingRow(QFrame):
     def __init__(self, title, description, spinbox, suffix="", parent=None):
         super().__init__(parent)
-        self.setStyleSheet(f"SettingRow {{ background-color: transparent; border-radius: 6px; }}")
+        self.setStyleSheet("SettingRow { background-color: transparent; border-radius: 6px; }")
 
         layout = QHBoxLayout(self)
         layout.setContentsMargins(0, 12, 0, 12)
@@ -738,7 +799,8 @@ class SettingsPanel(QWidget):
         seconds_label = "сек" if lang_ru else "sec"
         minutes_label = "мин" if lang_ru else "min"
 
-        layout.addWidget(SectionHeader(get_text('scan_parameters', lang)))
+        self.scan_header = SectionHeader(get_text('scan_parameters', lang))
+        layout.addWidget(self.scan_header)
 
         row1 = SettingRow(
             get_text('scan_delay_min', lang),
@@ -758,7 +820,8 @@ class SettingsPanel(QWidget):
 
         layout.addSpacing(8)
 
-        layout.addWidget(SectionHeader(get_text('wait_section', lang)))
+        self.wait_header = SectionHeader(get_text('wait_section', lang))
+        layout.addWidget(self.wait_header)
 
         row3 = SettingRow(
             get_text('wait_minutes_min', lang),
@@ -788,7 +851,7 @@ class SettingsPanel(QWidget):
 
         layout.addStretch(1)
 
-        self.relogin_button = QLabel(f"<a href='#' style='color: {COLORS['danger'].darker(110).name()}; text-decoration: none; font-size: 12px;'>{get_text('relogin', lang)}</a>")
+        self.relogin_button = QLabel(self._relogin_html(lang))
         self.relogin_button.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.relogin_button.setCursor(Qt.CursorShape.PointingHandCursor)
         self.relogin_button.linkActivated.connect(self.relogin)
@@ -800,6 +863,14 @@ class SettingsPanel(QWidget):
         self._save_timer.setSingleShot(True)
         self._save_timer.setInterval(500)
         self._save_timer.timeout.connect(self._do_save)
+
+    def _relogin_html(self, lang):
+        color = COLORS['danger'].darker(110).name()
+        text = get_text('relogin', lang)
+        return (
+            f"<a href='#' style='color: {color}; text-decoration: none; "
+            f"font-size: 12px;'>{text}</a>"
+        )
 
     def _on_setting_changed(self):
         self._save_timer.start()
@@ -821,10 +892,10 @@ class SettingsPanel(QWidget):
     def showEvent(self, event):
         super().showEvent(event)
         lang = self.db.get_setting('language') or 'en'
+        self.scan_header.set_text(get_text('scan_parameters', lang))
+        self.wait_header.set_text(get_text('wait_section', lang))
         if self.relogin_button:
-            self.relogin_button.setText(
-                f"<a href='#' style='color: {COLORS['danger'].darker(110).name()}; text-decoration: none; font-size: 12px;'>{get_text('relogin', lang)}</a>"
-            )
+            self.relogin_button.setText(self._relogin_html(lang))
         keys = [
             ('scan_delay_min', 'scan_delay_min_desc'),
             ('scan_delay_max', 'scan_delay_max_desc'),
@@ -843,6 +914,8 @@ class ScrapTF2App(QMainWindow):
     def __init__(self):
         super().__init__()
         self.db = RaffleDatabase()
+        self.app_worker = None
+        self.raffle_stats_worker = None
         self.init_ui()
         self.check_initial_state()
 
@@ -897,7 +970,7 @@ class ScrapTF2App(QMainWindow):
         self.refresh_ui_language()
         self.stack.setCurrentWidget(self.main_screen)
 
-        if not hasattr(self, 'raffle_stats_worker') or not self.raffle_stats_worker or not self.raffle_stats_worker.isRunning():
+        if not self.raffle_stats_worker or not self.raffle_stats_worker.isRunning():
             self.raffle_stats_worker = RaffleStatsWorker()
             self.raffle_stats_worker.stats_updated.connect(self.update_raffle_stats)
             self.raffle_stats_worker.start()
@@ -905,12 +978,11 @@ class ScrapTF2App(QMainWindow):
     def refresh_ui_language(self):
         lang = self.db.get_setting('language') or 'en'
 
-        self.total_card.title_label.setText(get_text('total', lang))
-        self.processed_card.title_label.setText(get_text('processed', lang))
-        self.unprocessed_card.title_label.setText(get_text('pending', lang))
+        self.stat_cards['total'].title_label.setText(get_text('total', lang))
+        self.stat_cards['processed'].title_label.setText(get_text('processed', lang))
+        self.stat_cards['unprocessed'].title_label.setText(get_text('pending', lang))
 
-        self.status_card._lang = lang
-        self.status_card.step_timeline.set_language(lang)
+        self.status_card.set_language(lang)
         self.status_card.state_label.setText(get_text('state_starting', lang))
 
     def create_main_screen(self):
@@ -922,26 +994,32 @@ class ScrapTF2App(QMainWindow):
         self.content_stack = QStackedWidget()
         main_layout.addWidget(self.content_stack, 1)
 
-        self.status_page = self.create_status_page()
-        self.settings_page = self.create_settings_page()
+        self.content_stack.addWidget(self.create_status_page())
+        self.content_stack.addWidget(self.create_settings_page())
 
-        self.content_stack.addWidget(self.status_page)
-        self.content_stack.addWidget(self.settings_page)
+        lang = self.db.get_setting('language') or 'en'
 
         nav_frame = QFrame()
-        nav_frame.setFixedWidth(70)
-        nav_frame.setStyleSheet(f"background-color: {COLORS['nav_bg'].name()};")
+        nav_frame.setFixedWidth(74)
+        nav_frame.setStyleSheet(f"""
+            QFrame {{
+                background-color: {COLORS['nav_bg'].name()};
+                border-right: 1px solid {COLORS['border'].name()};
+            }}
+        """)
         nav_layout = QVBoxLayout(nav_frame)
-        nav_layout.setContentsMargins(10, 10, 10, 10)
-        nav_layout.setSpacing(10)
+        nav_layout.setContentsMargins(12, 16, 12, 16)
+        nav_layout.setSpacing(12)
         nav_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
 
         status_btn = IconButton("📊")
         status_btn.setChecked(True)
+        status_btn.setToolTip(get_text('nav_status', lang))
         status_btn.clicked.connect(lambda: self.switch_page(0, status_btn))
         nav_layout.addWidget(status_btn)
 
         settings_btn = IconButton("⚙")
+        settings_btn.setToolTip(get_text('nav_settings', lang))
         settings_btn.clicked.connect(lambda: self.switch_page(1, settings_btn))
         nav_layout.addWidget(settings_btn)
 
@@ -980,8 +1058,7 @@ class ScrapTF2App(QMainWindow):
         self.status_card = StatusCard()
         lang = self.db.get_setting('language') or 'en'
         self.status_card.state_label.setText(get_text('state_starting', lang))
-        self.status_card._lang = lang
-        self.status_card.step_timeline.set_language(lang)
+        self.status_card.set_language(lang)
         self.status_card.loader.start()
         container_layout.addWidget(self.status_card)
 
@@ -1000,25 +1077,18 @@ class ScrapTF2App(QMainWindow):
         lang = self.db.get_setting('language') or 'en'
 
         stats_frame = QFrame()
-        stats_frame.setStyleSheet(f"""
-            background-color: {COLORS['card_bg'].name()};
-            border-radius: 10px;
-        """)
+        stats_frame.setStyleSheet("background: transparent;")
         stats_layout = QHBoxLayout(stats_frame)
-        stats_layout.setContentsMargins(15, 10, 15, 10)
-        stats_layout.setSpacing(20)
+        stats_layout.setContentsMargins(0, 0, 0, 0)
+        stats_layout.setSpacing(16)
 
-        self.total_card = StatsCounter(get_text('total', lang), COLORS['accent'])
-        self.total_counter = self.total_card.value_label
-        stats_layout.addWidget(self.total_card)
-
-        self.processed_card = StatsCounter(get_text('processed', lang), COLORS['success'])
-        self.processed_counter = self.processed_card.value_label
-        stats_layout.addWidget(self.processed_card)
-
-        self.unprocessed_card = StatsCounter(get_text('pending', lang), COLORS['warning'])
-        self.unprocessed_counter = self.unprocessed_card.value_label
-        stats_layout.addWidget(self.unprocessed_card)
+        self.stat_cards = {
+            'total': StatsCounter(get_text('total', lang), COLORS['accent'], "\U0001F4E6"),
+            'processed': StatsCounter(get_text('processed', lang), COLORS['success'], "✔"),
+            'unprocessed': StatsCounter(get_text('pending', lang), COLORS['warning'], "⏳"),
+        }
+        for card in self.stat_cards.values():
+            stats_layout.addWidget(card)
 
         parent_layout.addWidget(stats_frame)
 
@@ -1042,10 +1112,24 @@ class ScrapTF2App(QMainWindow):
 
         app.setPalette(palette)
 
+        bg = COLORS['background']
+        bg_alt = COLORS['background_alt']
         app.setStyleSheet(f"""
+            * {{
+                font-family: "Segoe UI", "Inter", "Roboto", sans-serif;
+            }}
+
+            QMainWindow {{
+                background-color: qlineargradient(
+                    x1:0, y1:0, x2:0.6, y2:1,
+                    stop:0 {bg_alt.name()},
+                    stop:1 {bg.name()}
+                );
+            }}
+
             QGroupBox {{
-                border: 1px solid {COLORS['card_bg'].lighter(150).name()};
-                border-radius: 10px;
+                border: 1px solid {COLORS['border'].name()};
+                border-radius: 12px;
                 margin-top: 10px;
                 font-weight: bold;
                 color: {COLORS['text'].name()};
@@ -1059,24 +1143,53 @@ class ScrapTF2App(QMainWindow):
 
             QLabel {{
                 color: {COLORS['text'].name()};
+                background: transparent;
+            }}
+
+            QToolTip {{
+                background-color: {COLORS['card_bg'].name()};
+                color: {COLORS['text'].name()};
+                border: 1px solid {COLORS['border_strong'].name()};
+                border-radius: 6px;
+                padding: 6px 9px;
+                font-size: 12px;
+            }}
+
+            QScrollBar:vertical {{
+                background: transparent;
+                width: 10px;
+                margin: 2px 2px 2px 0;
+            }}
+            QScrollBar::handle:vertical {{
+                background: {COLORS['border_strong'].name()};
+                border-radius: 5px;
+                min-height: 32px;
+            }}
+            QScrollBar::handle:vertical:hover {{
+                background: {COLORS['accent'].name()};
+            }}
+            QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {{
+                height: 0;
+            }}
+            QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical {{
+                background: transparent;
             }}
         """)
 
     def update_raffle_stats(self, stats):
-        self.total_counter.setText(str(stats['total']))
-        self.processed_counter.setText(str(stats['processed']))
-        self.unprocessed_counter.setText(str(stats['unprocessed']))
+        self.stat_cards['total'].value_label.setText(str(stats['total']))
+        self.stat_cards['processed'].value_label.setText(str(stats['processed']))
+        self.stat_cards['unprocessed'].value_label.setText(str(stats['unprocessed']))
 
     def update_status(self, status):
         state = status.get('state', '')
         lang = self.db.get_setting('language') or 'en'
-        
+
         if not state:
             return
-        
-        self.status_card._lang = lang
-        self.status_card.step_timeline.set_language(lang)
-        
+
+        self.status_card.set_language(lang)
+
         if state == 'scanning':
             self.status_card.state_label.setText(get_text('state_scanning', lang))
             self.status_card.set_state('scanning', COLORS['accent'])
@@ -1085,27 +1198,34 @@ class ScrapTF2App(QMainWindow):
             total = status.get('total', 0)
             processed = status.get('processed', 0)
             failed = status.get('failed', 0)
-            
+
             self.status_card.state_label.setText(get_text('state_processing', lang))
             self.status_card.set_state('processing', COLORS['success'])
             self.status_card.update_progress(current, total, processed, failed)
+        elif state == 'waiting':
+            remaining = status.get('remaining', 0)
+            minutes = remaining // 60
+            seconds = remaining % 60
+            label = f"{get_text('state_waiting', lang)} {minutes:02d}:{seconds:02d}"
+            self.status_card.state_label.setText(label)
+            self.status_card.set_state('waiting', COLORS['warning'])
         elif state == 'stopped':
             self.status_card.state_label.setText(get_text('state_stopped', lang))
             self.status_card.set_state('stopped', COLORS['danger'])
 
     def relogin_user(self):
-        if hasattr(self, 'raffle_stats_worker') and self.raffle_stats_worker.isRunning():
+        if self.raffle_stats_worker and self.raffle_stats_worker.isRunning():
             self.raffle_stats_worker.stop()
 
-        if hasattr(self, 'app_worker') and self.app_worker and self.app_worker.isRunning():
+        if self.app_worker and self.app_worker.isRunning():
             self.app_worker.relogin()
             self.show_login_screen()
 
     def closeEvent(self, event):
-        if hasattr(self, 'app_worker') and self.app_worker and self.app_worker.isRunning():
+        if self.app_worker and self.app_worker.isRunning():
             self.app_worker.stop()
 
-        if hasattr(self, 'raffle_stats_worker') and self.raffle_stats_worker.isRunning():
+        if self.raffle_stats_worker and self.raffle_stats_worker.isRunning():
             self.raffle_stats_worker.stop()
 
         super().closeEvent(event)
@@ -1115,8 +1235,12 @@ class ScrapTF2App(QMainWindow):
         QApplication.processEvents()
 
 
-if __name__ == "__main__":
+def main():
     app = QApplication(sys.argv)
     window = ScrapTF2App()
     window.show()
     sys.exit(app.exec())
+
+
+if __name__ == "__main__":
+    main()
