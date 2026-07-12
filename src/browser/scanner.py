@@ -8,11 +8,6 @@ from browser.scraper import collect_raffles_from_page, process_unprocessed_raffl
 
 
 async def run_scanner_with_browser(browser, db, worker=None):
-    scan_delay_min = int(db.get_setting('scan_delay_min'))
-    scan_delay_max = int(db.get_setting('scan_delay_max'))
-    wait_minutes_min = int(db.get_setting('wait_minutes_min'))
-    wait_minutes_max = int(db.get_setting('wait_minutes_max'))
-
     tab = await browser.get("https://scrap.tf/")
     for _ in range(10):
         if not worker or worker.is_interrupted():
@@ -20,6 +15,11 @@ async def run_scanner_with_browser(browser, db, worker=None):
         await asyncio.sleep(0.5)
 
     while worker and not worker.is_interrupted():
+        scan_delay_min = int(db.get_setting('scan_delay_min'))
+        scan_delay_max = int(db.get_setting('scan_delay_max'))
+        wait_minutes_min = int(db.get_setting('wait_minutes_min'))
+        wait_minutes_max = int(db.get_setting('wait_minutes_max'))
+
         worker.status_changed.emit({'state': 'scanning'})
 
         tab = await browser.get("https://scrap.tf/raffles")

@@ -786,12 +786,12 @@ class SettingsPanel(QWidget):
         self.scan_delay_max.valueChanged.connect(self._on_setting_changed)
 
         self.wait_minutes_min = QSpinBox()
-        self.wait_minutes_min.setRange(1, 60)
+        self.wait_minutes_min.setRange(0, 60)
         self.wait_minutes_min.setValue(int(self.db.get_setting('wait_minutes_min')))
         self.wait_minutes_min.valueChanged.connect(self._on_setting_changed)
 
         self.wait_minutes_max = QSpinBox()
-        self.wait_minutes_max.setRange(1, 60)
+        self.wait_minutes_max.setRange(0, 60)
         self.wait_minutes_max.setValue(int(self.db.get_setting('wait_minutes_max')))
         self.wait_minutes_max.valueChanged.connect(self._on_setting_changed)
 
